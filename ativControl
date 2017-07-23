@@ -3,33 +3,36 @@
 OPTIND=1	# Reset in case getopts has been invoked previously
 verbose=0	# Randy!
 
+brightness () {
+  brt_target='/sys/class/backlight/intel_backlight/brightness'
+  max_target='/sys/class/backlight/intel_backlight/max_brightness'
+
+  brightness=$(<$brt_target)
+  new_brightness=$(($brightness+$1))
+  max_brightness=$(<$max_target)
+  
+  if [ $verbose -eq 1 ]; then
+    echo "current brightness: $brightness, incrementing by $1"
+  fi
+
+  if [ $new_brightness -gt $max_brightness ]; then
+    echo $max_brightness > $brt_target
+  elif [ $new_brightness -lt 0 ]; then
+    echo 1 > $brt_target
+  else
+    echo $new_brightness > $brt_target
+  fi
+}
+
 while getopts "h?vb:" opt; do
-	case "$opt" in
-	h|\?)
-		show_help
-		exit 0
-		;;
-	v)	verbose=1
-		;;
-	b)
-		increment=$OPTARG
-		brightness=$(</sys/class/backlight/intel_backlight/brightness)
-		new_brightness=$(($brightness+$increment))
-		max_brightness=$(</sys/class/backlight/intel_backlight/max_brightness)
-		if [ $verbose -eq 1 ]
-		then
-			echo "current brightness: $brightness, incrementing by $increment"
-		fi
-		if [ $new_brightness -gt $max_brightness ]
-		then
-			echo $max_brightness > /sys/class/backlight/intel_backlight/brightness
-		elif [ $new_brightness -lt 0 ]
-		then
-			echo 1 > /sys/class/backlight/intel_backlight/brightness
-		else
-			echo $new_brightness  > /sys/class/backlight/intel_backlight/brightness
-		fi
-	esac
+  case "$opt" in
+  h|\?)
+    show_help
+    exit 0
+    ;;
+  v) verbose=1 ;;
+  b) brightness $OPTARG ;;
+  esac
 done
 
 shift $((OPTIND-1))
