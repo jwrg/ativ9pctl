@@ -1,0 +1,39 @@
+#!/bin/bash
+
+OPTIND=1	# Reset in case getopts has been invoked previously
+verbose=0	# Randy!
+
+while getopts "h?vb:" opt; do
+	case "$opt" in
+	h|\?)
+		show_help
+		exit 0
+		;;
+	v)	verbose=1
+		;;
+	b)
+		increment=$OPTARG
+		brightness=$(</sys/class/backlight/intel_backlight/brightness)
+		new_brightness=$(($brightness+$increment))
+		max_brightness=$(</sys/class/backlight/intel_backlight/max_brightness)
+		if [ $verbose -eq 1 ]
+		then
+			echo "current brightness: $brightness, incrementing by $increment"
+		fi
+		if [ $new_brightness -gt $max_brightness ]
+		then
+			echo $max_brightness > /sys/class/backlight/intel_backlight/brightness
+		elif [ $new_brightness -lt 0 ]
+		then
+			echo 1 > /sys/class/backlight/intel_backlight/brightness
+		else
+			echo $new_brightness  > /sys/class/backlight/intel_backlight/brightness
+		fi
+	esac
+done
+
+shift $((OPTIND-1))
+
+[ "$1" = "--" ] && shift
+
+# EOF
