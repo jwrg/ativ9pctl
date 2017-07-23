@@ -1,8 +1,23 @@
 #!/bin/bash
 
-OPTIND=1	# Reset in case getopts has been invoked previously
-verbose=0	# Randy!
+# This script is a wrapper for some functionality on Samsung Ativ Book 9 Plus
+# laptops, with the intention that these functions be mapped to the fn-keys
+# using a display manager (in my case, dwm).  It is provided as-is; use at your
+# own risk.
+#
+# For reference, the function key x11 hex reference will be given with the
+# corresponding function.
 
+# Control the brightness of the screen backlight
+#
+# This queries for the backlight brightness and max brightness in /sys/, and
+# expects a parameter from the command line, which is how much you want to
+# brighten the screen (negative values darken the backlight).
+#
+# Brightness up key hex reference: 0x1008ff02
+# Brightness down key hex reference: 0x1008ff03
+#
+# NB script needs root/sudo elevation for this to work
 brightness () {
   brt_target='/sys/class/backlight/intel_backlight/brightness'
   max_target='/sys/class/backlight/intel_backlight/max_brightness'
@@ -23,6 +38,9 @@ brightness () {
     echo $new_brightness > $brt_target
   fi
 }
+
+OPTIND=1	# Reset in case getopts has been invoked previously
+verbose=0	# Randy!
 
 while getopts "h?vb:" opt; do
   case "$opt" in
