@@ -10,7 +10,7 @@
 
 # Globals
 
-ATIV_USER=downfall
+ATIV_USER=your_user_name_goes_here
 ATIV_BKLT=/sys/class/backlight/intel_backlight/
 
 OPTIND=1	# Reset in case getopts has been invoked previously
@@ -35,9 +35,6 @@ log () {
 #
 # For information on making pm-suspend work, see the following URL:
 # https://wiki.gentoo.org/wiki/Suspend_and_hibernate
-#
-# This can be mapped to the launch key (Fn + F1)
-# Launch key hex reference: 0x1008ff41
 
 laptop_suspend () {
   pm-suspend &
