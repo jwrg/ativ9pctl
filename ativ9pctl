@@ -130,7 +130,7 @@ else
       "-v"|"--vervose"    ) ;;
       "-b"|"--brightness" ) BRT_DELTA="$1"; brightness; shift;;
       "-l"|"--volume"     ) VOL_DELTA="$1"; volume; shift;;
-      "-s"|"--suspend"    ) ;;
+      "-s"|"--suspend"    ) laptop_suspend ;;
       *                   ) echo "ERROR: Invalid option: \""$opt"\"" >&2
                             exit 1;;
     esac
