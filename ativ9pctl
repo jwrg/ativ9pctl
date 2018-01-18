@@ -13,6 +13,10 @@
 ATIV_USER=your_user_name_goes_here
 ATIV_BKLT=/sys/class/backlight/intel_backlight/
 
+# Argument default values
+BRT_DELTA=0
+VOL_DELTA=0
+
 # Reset in case getopts has been invoked previously
 OPTIND=1
 
@@ -63,9 +67,9 @@ brightness () {
   max_target="${ATIV_BKLT}max_brightness"
 
   brightness=$(<$brt_target)
-  new_brightness=$(($brightness+$1))
+  new_brightness=$(($brightness+$BRT_DELTA))
   max_brightness=$(<$max_target)
-  log "current brightness: $brightness, incrementing by $1"
+  log "current brightness: $brightness, incrementing by $BRT_DELTA"
 
   if [ $new_brightness -gt $max_brightness ]; then
     log "brightness set to maximum value!"
@@ -79,20 +83,58 @@ brightness () {
   fi
 }
 
-while getopts "h?vsb:" opt; do
-  case "$opt" in
-  h|\?)
-    show_help
-    exit 0
-    ;;
-  v) VERBOSE=1 ;;
-  s) laptop_suspend ;;
-  b) brightness $OPTARG ;;
-  esac
-done
+# Control the sound volume
+#
+# This expects an integer parameter from the command line, which it then uses
+# to change the sound output volume using a common command line mixer program.
+# The given parameter does the following:
+#
+# Positive parameter => increase the volume by a given percentage
+# Negative parameter => decrease the volume by a given percentage
+# Zero parameter => mute the volume
+#
+# The NP940 has only the one output, so it should be unambiguous as to what
+# this function controls.
+#
+# Volume up key hex reference: 0x1008ff13
+# Volume down key hex reference: 0x1008ff11
+# Mute key hex reference: 0x1008ff12
+#
+# NB this function SHOULD NOT be run as root, which will not change the volume
+# as expected.
 
-shift $((OPTIND-1))
+volume () {
+  if [ $VOL_DELTA -eq 0 ]; then
+    log "muting volume"
+    amixer set Master 1+ toggle -q
+  elif [ $VOL_DELTA -lt 0 ]; then
+    log "decreading volume by $VOL_DELTA"
+	amixer set Master ${VOL_DELTA#-}%- -qM
+  else
+    log "increasing volume by $VOL_DELTA"
+    amixer set Master $VOL_DELTA%+ -qM
+  fi
+}
 
-[ "$1" = "--" ] && shift
+# Main control sequence
+#!/bin/bash
+
+if [[ "$1" =~ ^((-{1,2})([Hh]$|[Hh][Ee][Ll][Pp])|)$ ]]; then
+  show_help; exit 1
+else
+  while [[ $# -gt 0 ]]; do
+    opt="$1"
+    shift;
+    current_arg="$1"
+    case "$opt" in
+      "-v"|"--vervose"    ) ;;
+      "-b"|"--brightness" ) BRT_DELTA="$1"; brightness; shift;;
+      "-l"|"--volume"     ) VOL_DELTA="$1"; volume; shift;;
+      "-s"|"--suspend"    ) ;;
+      *                   ) echo "ERROR: Invalid option: \""$opt"\"" >&2
+                            exit 1;;
+    esac
+  done
+fi
 
 # EOF
