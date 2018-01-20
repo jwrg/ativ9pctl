@@ -18,7 +18,7 @@ BRT_DELTA=0
 VOL_DELTA=0
 
 # Reset in case getopts has been invoked previously
-OPTIND=1
+#OPTIND=1
 
 # Logging function
 #
