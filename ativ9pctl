@@ -8,17 +8,14 @@
 # For reference, the function key x11 hex reference will be given with the
 # corresponding function.
 
-# Globals
+# Constants
 
 ATIV_USER=your_user_name_goes_here
 ATIV_BKLT=/sys/class/backlight/intel_backlight/
 
 # Argument default values
-BRT_DELTA=0
-VOL_DELTA=0
-
-# Reset in case getopts has been invoked previously
-#OPTIND=1
+brt_delta=0
+vol_delta=0
 
 # Logging function
 #
@@ -33,10 +30,11 @@ log () {
 
 # Put the system into suspend and lock the screen
 #
-# This is a simple function that does two things:
+# This is a simple function that does three things:
 #
 # 1) suspends the system in the background, and
 # 2) locks the screen
+# 3) saves and restores the screen brightness value
 #
 # For information on making pm-suspend work, see the following URL:
 # https://wiki.gentoo.org/wiki/Suspend_and_hibernate
@@ -47,8 +45,11 @@ log () {
 # NB script needs root/sudo elevation for this to work
 
 laptop_suspend () {
+  brt_target="${ATIV_BKLT}brightness"
+  brightness=$(<$brt_target)
   pm-suspend &
   su -c slock -l $ATIV_USER
+  echo $brightness > $brt_target
 }
 
 # Control the brightness of the screen backlight
@@ -67,9 +68,9 @@ brightness () {
   max_target="${ATIV_BKLT}max_brightness"
 
   brightness=$(<$brt_target)
-  new_brightness=$(($brightness+$BRT_DELTA))
+  new_brightness=$(($brightness+$brt_delta))
   max_brightness=$(<$max_target)
-  log "current brightness: $brightness, incrementing by $BRT_DELTA"
+  log "current brightness: $brightness, incrementing by $brt_delta"
 
   if [ $new_brightness -gt $max_brightness ]; then
     log "brightness set to maximum value!"
@@ -100,24 +101,23 @@ brightness () {
 # Volume down key hex reference: 0x1008ff11
 # Mute key hex reference: 0x1008ff12
 #
-# NB this function SHOULD NOT be run as root, which will not change the volume
-# as expected.
+# NB this function SHOULD NOT be run as root, as doing so will not change the 
+# volume as expected.
 
 volume () {
-  if [ $VOL_DELTA -eq 0 ]; then
+  if [ $vol_delta -eq 0 ]; then
     log "muting volume"
     amixer set Master 1+ toggle -q
-  elif [ $VOL_DELTA -lt 0 ]; then
-    log "decreading volume by $VOL_DELTA"
-	amixer set Master ${VOL_DELTA#-}%- -qM
+  elif [ $vol_delta -lt 0 ]; then
+    log "decreading volume by $vol_delta"
+	amixer set Master ${vol_delta#-}%- -qM
   else
-    log "increasing volume by $VOL_DELTA"
-    amixer set Master $VOL_DELTA%+ -qM
+    log "increasing volume by $vol_delta"
+    amixer set Master $vol_delta%+ -qM
   fi
 }
 
 # Main control sequence
-#!/bin/bash
 
 if [[ "$1" =~ ^((-{1,2})([Hh]$|[Hh][Ee][Ll][Pp])|)$ ]]; then
   show_help; exit 1
@@ -128,8 +128,8 @@ else
     current_arg="$1"
     case "$opt" in
       "-v"|"--vervose"    ) ;;
-      "-b"|"--brightness" ) BRT_DELTA="$1"; brightness; shift;;
-      "-l"|"--volume"     ) VOL_DELTA="$1"; volume; shift;;
+      "-b"|"--brightness" ) brt_delta="$1"; brightness; shift;;
+      "-l"|"--volume"     ) vol_delta="$1"; volume; shift;;
       "-s"|"--suspend"    ) laptop_suspend ;;
       *                   ) echo "ERROR: Invalid option: \""$opt"\"" >&2
                             exit 1;;
