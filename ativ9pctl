@@ -127,7 +127,7 @@ else
     shift;
     current_arg="$1"
     case "$opt" in
-      "-v"|"--vervose"    ) ;;
+      "-v"|"--vervose"    ) VERBOSE=1;;
       "-b"|"--brightness" ) brt_delta="$1"; brightness; shift;;
       "-l"|"--volume"     ) vol_delta="$1"; volume; shift;;
       "-s"|"--suspend"    ) laptop_suspend ;;
