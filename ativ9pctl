@@ -109,8 +109,8 @@ volume () {
     log "muting volume"
     amixer set Master 1+ toggle -q
   elif [ $vol_delta -lt 0 ]; then
-    log "decreading volume by $vol_delta"
-	amixer set Master ${vol_delta#-}%- -qM
+    log "decreasing volume by $vol_delta"
+    amixer set Master ${vol_delta#-}%- -qM
   else
     log "increasing volume by $vol_delta"
     amixer set Master $vol_delta%+ -qM
@@ -127,7 +127,7 @@ else
     shift;
     current_arg="$1"
     case "$opt" in
-      "-v"|"--vervose"    ) VERBOSE=1;;
+      "-v"|"--verbose"    ) VERBOSE=1;;
       "-b"|"--brightness" ) brt_delta="$1"; brightness; shift;;
       "-l"|"--volume"     ) vol_delta="$1"; volume; shift;;
       "-s"|"--suspend"    ) laptop_suspend ;;
