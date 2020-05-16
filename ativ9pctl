@@ -28,6 +28,32 @@ log () {
   fi 
 }
 
+# Help text output function
+#
+# Output some hopefully helpful text to assist the user
+# in using the script
+show_help () {
+  echo "Usage: `basename $0` [ options ] [ action ]"
+  echo
+  echo "Options:"
+  echo "        -v --verbose"
+  echo "            Increase verbosity level"
+  echo
+  echo "Actions:"
+  echo "        -b --brightness [number]"
+  echo "            Increase screen backlight brightness by"
+  echo "            [number] (this can be a negative number,"
+  echo "            minimum is 1, maximum is ~900)"
+  echo
+  echo "        -l --volume [number]"
+  echo "            Increase currently selected mixer volume by"
+  echo "            [number] (this can be a negative number)"
+  echo
+  echo "        -s --suspend"
+  echo "            Put the laptop to sleep"
+  echo
+}
+
 # Put the system into suspend and lock the screen
 #
 # This is a simple function that does three things:
